@@ -11,6 +11,8 @@ import {
     Legend
 } from 'chart.js';
 import Axios from '../../../constants/Axios';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 ChartJS.register(
     CategoryScale,
@@ -26,14 +28,16 @@ const Chart = () => {
     const [salesData, setSalesData] = useState({});
     const [ordersData, setOrdersData] = useState({});
     const [usersData, setUsersData] = useState({});
+    const [startDate, setStartDate] = useState(new Date('2024-01-01'));
+    const [endDate, setEndDate] = useState(new Date('2024-12-31'));
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const response = await Axios.get('/statistics', {
                     params: {
-                        start_date: '2024-01-01', 
-                        end_date: '2024-12-31'  
+                        start_date: startDate.toISOString().split('T')[0],
+                        end_date: endDate.toISOString().split('T')[0]
                     }
                 });
                 const data = response.data;
@@ -82,11 +86,35 @@ const Chart = () => {
         };
 
         fetchData();
-    }, []);
+    }, [startDate, endDate]);
 
     return (
         <div className="p-20 bg-white shadow-lg rounded-lg">
             <h2 className="text-3xl font-bold text-gray-800 mb-4">Overview Statistics</h2>
+            <div className="mb-6">
+                <div className="flex space-x-4">
+                    <div>
+                        <label htmlFor="startDate" className="block text-gray-700">Start Date</label>
+                        <DatePicker
+                            id="startDate"
+                            selected={startDate}
+                            onChange={(date) => setStartDate(date)}
+                            dateFormat="yyyy-MM-dd"
+                            className="border p-2 rounded"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="endDate" className="block text-gray-700">End Date</label>
+                        <DatePicker
+                            id="endDate"
+                            selected={endDate}
+                            onChange={(date) => setEndDate(date)}
+                            dateFormat="yyyy-MM-dd"
+                            className="border p-2 rounded"
+                        />
+                    </div>
+                </div>
+            </div>
             <div className="space-y-8">
                 <div className="relative h-60">
                     <h3 className="text-2xl font-semibold text-gray-700 mb-2">Sales</h3>
@@ -104,7 +132,7 @@ const Chart = () => {
                                 plugins: {
                                     legend: {
                                         labels: {
-                                            color: 'rgb(75, 85, 99)', 
+                                            color: 'rgb(75, 85, 99)',
                                         },
                                     },
                                 },
@@ -131,7 +159,7 @@ const Chart = () => {
                                 plugins: {
                                     legend: {
                                         labels: {
-                                            color: 'rgb(75, 85, 99)', 
+                                            color: 'rgb(75, 85, 99)',
                                         },
                                     },
                                 },
@@ -158,7 +186,7 @@ const Chart = () => {
                                 plugins: {
                                     legend: {
                                         labels: {
-                                            color: 'rgb(75, 85, 99)', 
+                                            color: 'rgb(75, 85, 99)',
                                         },
                                     },
                                 },

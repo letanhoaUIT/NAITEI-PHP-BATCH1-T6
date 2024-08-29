@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             ProductVariantSizeSeeder::class,
             ImageSeeder::class,
             ImageVariantSeeder::class,
+            StatisticsSeeder::class,
         ]);
     }
 }

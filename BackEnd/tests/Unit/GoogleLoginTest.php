@@ -14,13 +14,13 @@ class GoogleLoginTest extends TestCase
     {
         // Tạo một người dùng đã tồn tại
         $user = User::factory()->create([
-            'email' => '21522081@gm.uit.edu.vn',
+            'email' => '21522082@gm.uit.edu.vn',
             'name' => 'Expected Name',
         ]);
 
         // Dữ liệu yêu cầu
         $data = [
-            'email' => '21522081@gm.uit.edu.vn',
+            'email' => '21522082@gm.uit.edu.vn',
             'displayName' => 'Expected Name',
         ];
 
@@ -30,7 +30,7 @@ class GoogleLoginTest extends TestCase
         // Kiểm tra phản hồi
         $response->assertStatus(200)
             ->assertJsonFragment([
-                'email' => '21522081@gm.uit.edu.vn',
+                'email' => '21522082@gm.uit.edu.vn',
                 'name' => 'Expected Name',
             ]);
 
