@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Product;
 
 class UpdateProductImagesSeeder extends Seeder
 {
@@ -12,22 +13,28 @@ class UpdateProductImagesSeeder extends Seeder
     {
         // Danh sách hình ảnh
         $images = [
-            'STEVEMADDEN_MENS_AALON_BLACK-LEATHER_01-ezgif.com-webp-to-png-converter.png',
-            'STEVEMADDEN_MENS_AALON_TAN-LEATHER-ezgif.com-webp-to-png-converter.png',
-            'STEVEMADDEN_MENS_DAYMIN_BLACK-PATENT_01-ezgif.com-webp-to-png-converter.png',
-            'STEVEMADDEN_MENS_DAYMIN_BROWN-LEATHER_01-ezgif.com-webp-to-png-converter.png',
-            'STEVEMADDEN_MENS_DAYMIN_TAN-LEATHER_01-ezgif.com-webp-to-png-converter.png',
-            'STEVEMADDEN_MENS_FREDERICK_TAN-ezgif.com-webp-to-png-converter.png',
-            'STEVEMADDEN_MENS_JAYSHAN_BLACK-ezgif.com-webp-to-png-converter.png',
-            'STEVEMADDEN_MENS_NATAN_BLACK-WHITE-MULTI_01-ezgif.com-webp-to-png-converter.png',
-            'STEVEMADDEN_SHOES_ZEV_BLACK-BOX_01-ezgif.com-webp-to-png-converter.png',
-            'STEVEMADDEN_SHOES_ZEV_BURGANDY_01-ezgif.com-webp-to-png-converter.png',
+            'storage/images/STEVEMADDEN_MENS_AALON_TAN-LEATHER.png',
+            'storage/images/STEVEMADDEN_MENS_CAYCE_BLACK-LEATHER_01.png',
+            'storage/images/STEVEMADDEN_MENS_DAYMIN_BLACK-PATENT_01.png',
+            'storage/images/STEVEMADDEN_MENS_DAYMIN_BROWN-LEATHER_01.png',
+            'storage/images/STEVEMADDEN_MENS_DAYMIN_TAN-LEATHER_01.png',
+            'storage/images/STEVEMADDEN_MENS_HADAR_SILVER_01.png',
+            'storage/images/STEVEMADDEN_MENS_JAMONE_TAN_01.png',
+            'storage/images/STEVEMADDEN_MENS_JARRIS_BLACK-LEATHER.png',
+            'storage/images/STEVEMADDEN_MENS_JAYSHAN_BLACK_grande.png',
+            'storage/images/STEVEMADDEN_MENS_JAYSHAN_WHITE-LEATHER_01.png',
+            'storage/images/STEVEMADDEN_MENS_KOLEMAN_BLACK-LEATHER_01.png',
+            'storage/images/STEVEMADDEN_MENS_KOLEMAN_TAN-LEATHER_01.png',
+            'storage/images/STEVEMADDEN_MENS_NATAN_BROWN-MULTI_01.png',
+            'storage/images/STEVEMADDEN_MENS_ONDRE_SAND.png',
+            'storage/images/STEVEMADDEN_MENS_ONDRE_TAN.png',
         ];
 
-        foreach ($images as $index => $image) {
-            DB::table('products')->where('id', $index + 1)->update([
-                'image' => $image,
-            ]);
+        $shoes = Product::all();
+
+        foreach ($shoes as $shoe) {
+            $shoe->image = $images[array_rand($images)];
+            $shoe->save();
         }
     }
 }

@@ -1,77 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import Axios from '../../constants/Axios';
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import Axios from "../../constants/Axios";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Loading from "../sharepages/Loading";
+import { useAuth } from '../../contexts/AuthContext.jsx';
 
-const productDataDemo = {
-    name: "GADDIS NAVY SUEDE",
-    oldPrice: "$129.95",
-    newPrice: "$79.99",
-    rating: 5,
-    reviewsCount: 3,
-    images: [
-      "https://www.stevemadden.com/cdn/shop/files/STEVEMADDEN_MENS_JAYSHAN_BLACK_grande.jpg?v=1701468141",
-      "https://www.stevemadden.com/cdn/shop/files/STEVEMADDEN_MENS_JAYSHAN_BLACK_01_grande.jpg?v=1701468141",
-      "https://www.stevemadden.com/cdn/shop/files/STEVEMADDEN_MENS_JAYSHAN_BLACK_04_grande.jpg?v=1701468141"
-    ],
-    colors: ["NAVY SUEDE", "BROWN SUEDE"],
-    sizes: [7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5, 11, 11.5, 12, 13, 14, 15],
-    description: "Soft, supple and comfortable. Choose a 1/2 size smaller than your usual sneaker size.",
-    reviews: [
-      {
-        id: 1,
-        rating: 5,
-        title: "Good Fit",
-        content: "Soft, supple and comfortable. Choose a 1/2 size smaller than your usual sneaker size.",
-        author: "Stephon R.",
-        date: "05/01/24",
-        pros: "Quality, Comfortable, Value, Stylish",
-        age: "34-40"
-      },
-      {
-        id: 2,
-        rating: 4,
-        title: "Nice Shoes",
-        content: "Great quality and comfort. Would recommend.",
-        author: "Alex D.",
-        date: "04/30/24",
-        pros: "Comfortable, Stylish",
-        age: "28-34"
-      },
-      {
-        id: 3,
-        rating: 3,
-        title: "Average",
-        content: "The shoes are okay, but a bit tight.",
-        author: "John K.",
-        date: "04/29/24",
-        pros: "Value",
-        age: "22-28"
-      }
-    ]
-  };
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const [productData, setProductData] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
-  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedVariant, setSelectedVariant] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [comment, setComment] = useState('');
+  const [comments, setComments] = useState([]);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await Axios.get(`/products/${id}`);
+        const response = await Axios.get(`/products/${id}/variants`);
         const product = response.data;
-
-        // Initialize selected color
-        if (product.variants.length > 0) {
-          setSelectedColor(product.variants[0].color);
-        }
-        
         setProductData(product);
+
+        if (product.variants.length > 0) {
+          setSelectedVariant(product.variants[0]);
+          if (product.variants[0].sizes.length > 0) {
+            setSelectedSize(product.variants[0].sizes[0]);
+          }
+        }
+
+        // Fetch comments for the product
+        const commentsResponse = await Axios.get(`/products/${id}/comments`);
+        setComments(commentsResponse.data);
+
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching product data:', error);
+        console.error("Error fetching product data:", error);
         setLoading(false);
       }
     };
@@ -79,8 +48,37 @@ const ProductDetail = () => {
     fetchProduct();
   }, [id]);
 
+  const handleCommentSubmit = async () => {
+    if (!user) {
+      toast.error("You must be logged in to comment");
+      return;
+    }
+    if (!comment.trim()) {
+      toast.error("Comment cannot be empty");
+      return;
+    }
+
+    try {
+      const response = await Axios.post(`/products/${id}/comments`, {
+        user_id: user.id,
+        comment: comment,
+      });
+      setComments([...comments, response.data]);
+      setComment('');
+      toast.success("Comment added successfully");
+    } catch (error) {
+      toast.error("Error adding comment");
+    }
+  };
+
+  const handleFacebookShare = () => {
+    const url = window.location.href; // URL hiện tại của trang sản phẩm
+    const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    window.open(facebookShareUrl, '_blank');
+  };
+
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loading />;
   }
 
   if (!productData) {
@@ -91,72 +89,140 @@ const ProductDetail = () => {
     setSelectedSize(size);
   };
 
+  const addToCart = async () => {
+    if (!selectedVariant || !selectedSize) {
+      toast.error("Please select a size and color");
+      return;
+    }
+
+    try {
+      const response = await Axios.post("/add-to-cart", {
+        product_variant_id: selectedVariant.id,
+        size_id: selectedSize.id,
+        quantity: 1,
+      });
+      if (response.status === 201 || response.status === 202) {
+        toast.success("Added to cart");
+      }
+    } catch (error) {
+      toast.error("Error adding to cart");
+    }
+  };
+
+  const settings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+  };
+
   return (
-    <div className="product-detail p-4 mx-auto">
-      <div className="flex">
-        <div className="w-2/3">
-          <img src={productDataDemo.images[0]} alt={productData.name} className="w-full" />
-        </div>
-        <div className="w-1/3 pl-4">
-          <h1 className="text-2xl font-bold">{productData.name}</h1>
-          <div className="text-2xl font-bold text-red-600">${productData.price.toFixed(2)}</div>
-          <div className="mt-2">
-            <span className="text-yellow-500">{"★".repeat(4)}</span>
-            <span className="text-gray-500"> (3 Reviews)</span>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-lg font-bold">COLOR</h3>
-            <div className="flex">
-              {productData.variants.map((variant, index) => (
-                <div key={index} className="mr-2">
-                  <button
-                    className={`border-2 p-2 ${selectedColor === variant.color ? "border-black" : "border-gray-300"}`}
-                    onClick={() => setSelectedColor(variant.color)}
-                  >
-                    <span>{variant.color}</span>
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-lg font-bold">SELECT A SIZE</h3>
-            <div className="flex flex-wrap">
-              {productData.variants.map((variant) => (
-                variant.size.map((size, index) => (
-                  <button
-                    key={index}
-                    className={`border p-2 m-1 ${selectedSize === size ? "bg-black text-white" : "bg-white"}`}
-                    onClick={() => handleSizeClick(size)}
-                  >
-                    {size}
-                  </button>
-                ))
-              ))}
-            </div>
-          </div>
-          <button className="mt-4 w-full bg-black text-white py-2 font-bold">ADD TO CART</button>
-        </div>
+    <div className="product-detail p-4 mx-auto max-w-screen-lg flex">
+      {/* Left Side: Image and Toast */}
+      <div className="w-2/3">
+        {selectedVariant && selectedVariant.images.length > 0 && (
+          <Slider {...settings}>
+            {selectedVariant.images.map((image, index) => (
+              <div key={index} className="p-2">
+                <img
+                  src={image.url}
+                  alt={`Product Image ${index + 1}`}
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+            ))}
+          </Slider>
+        )}
+        <ToastContainer />
       </div>
-      <div className="mt-8">
-        <h2 className="text-xl font-bold">Reviews</h2>
-        <div className="mt-4">
-          <div className="border-b pb-2">
-            <span className="text-2xl font-bold">4</span>
-            <span className="text-yellow-500 ml-2">{"★".repeat(4)}</span>
-            <span className="ml-2 text-gray-500">(Based on {productData.variants.length} reviews)</span>
+
+      {/* Right Side: Product Details and Add to Cart */}
+      <div className="w-1/3">
+        <div className="text-center mb-4">
+          <h1 className="text-2xl font-bold">{productData.name}</h1>
+          <div className="text-2xl font-bold text-red-600">
+            ${productData.price.toFixed(2)}
           </div>
-          <div className="mt-4">
-            {productDataDemo.reviews.map((review, index) => (
-                <div key={review.id} className="border-b pb-4 mb-4">
-                  <h3 className="font-bold">{review.title}</h3>
-                  <span className="text-yellow-500">{"★".repeat(review.rating)}</span>
-                  <p>{review.content}</p>
-                  <p className="text-sm text-gray-500">{review.author} | Verified Buyer</p>
-                  <p className="text-sm text-gray-500">Recommend: Yes, Pros: {review.pros}, Age: {review.age}</p>
-                </div>
+        </div>
+        <div className="mt-4">
+          <h3 className="text-lg font-bold">COLOR</h3>
+          <div className="flex flex-wrap">
+            {productData.variants.map((variant, index) => (
+              <button
+                key={index}
+                className={`border-2 p-2 m-1 ${selectedVariant === variant ? "border-black" : "border-gray-300"}`}
+                onClick={() => setSelectedVariant(variant)}
+              >
+                {variant.name}
+              </button>
             ))}
           </div>
+        </div>
+        <div className="mt-4">
+          <h3 className="text-lg font-bold">SELECT A SIZE</h3>
+          <div className="flex flex-wrap">
+            {selectedVariant && selectedVariant.sizes.map((size, index) => (
+              <button
+                key={index}
+                className={`border p-2 m-1 ${selectedSize === size ? "bg-black text-white" : "bg-white"}`}
+                onClick={() => handleSizeClick(size)}
+              >
+                {size.name}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="text-center mt-4">
+          <button
+            className="bg-black text-white py-2 px-4 font-bold"
+            onClick={addToCart}
+          >
+            ADD TO CART
+          </button>
+        </div>
+
+        {/* Facebook Share Button */}
+        <div className="text-center mt-4">
+          <button
+            className="bg-blue-600 text-white py-2 px-4 font-bold"
+            onClick={handleFacebookShare}
+          >
+            Share on Facebook
+          </button>
+        </div>
+
+        {/* Comment Section */}
+        <div className="mt-8">
+          <h3 className="text-lg font-bold">Leave a Comment</h3>
+          <textarea
+            className="w-full p-2 border border-gray-300 rounded-md"
+            rows="4"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Write your comment here..."
+          />
+          <button
+            className="bg-black text-white py-2 px-4 mt-2 font-bold w-full"
+            onClick={handleCommentSubmit}
+          >
+            Submit Comment
+          </button>
+        </div>
+
+        {/* Display Comments */}
+        <div className="mt-8">
+          <h3 className="text-lg font-bold">Comments</h3>
+          {comments.length > 0 ? (
+            comments.map((comment) => (
+              <div key={comment.id} className="border-t pt-2 mt-2">
+                <strong>{comment.user.name}</strong>
+                <p>{comment.comment}</p>
+              </div>
+            ))
+          ) : (
+            <p>No comments yet</p>
+          )}
         </div>
       </div>
     </div>
