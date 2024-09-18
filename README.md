@@ -15,7 +15,6 @@ This is our Shoes eCommerce website.
 6. [Testing](#6-testing)
 7. [Configuration](#7-configuration)
 8. [Contributing](#8-contributing)
-9. [Contact](#9-contact)
 ---
 
 ## 1. Introduction
@@ -195,6 +194,3 @@ If you would like to contribute to the project, please follow these steps:
 3. Submit a pull request once you’ve completed your work.
 
 
-## 9. Contact
-
-If you have any questions or concerns, please feel free to reach out via email: hellotho@gmail.com.
